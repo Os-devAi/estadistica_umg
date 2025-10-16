@@ -1,16 +1,20 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import './App.css'
-import GraficoEvolucion from './components/GraficoEvolucion'
-import CSVAnalysis from './components/CSVAnalysis'
+import Home from './pages/Home';
+import ConsultasInternas from './components/ConsultasDashboard';
 
 function App() {
   const [count, setCount] = useState(0)
 
   return (
     <>
-      <CSVAnalysis />
+      <Router>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="consulta/interna" element={<ConsultasInternas />} />
+        </Routes>
+      </Router>
     </>
   )
 }

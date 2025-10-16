@@ -14,7 +14,10 @@ import {
   Line as RechartsLine,
   PieChart,
   Pie,
-  Cell
+  Cell,
+  ScatterChart,
+  Scatter,
+  ReferenceLine
 } from 'recharts';
 import {
   Chart as ChartJS,
@@ -42,7 +45,7 @@ ChartJS.register(
   ArcElement
 );
 
-const CSVAnalysis = () => {
+const ConsultasDashboard = () => {
   const [chartData, setChartData] = useState(null);
   const [processedData, setProcessedData] = useState([]);
   const [selectedYear, setSelectedYear] = useState('2024');
@@ -50,12 +53,13 @@ const CSVAnalysis = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('barras');
+  const [consulta, setConsulta] = useState('interna');
+  const [csvUrl, setCSVUrl] = useState('https://ik.imagekit.io/nhu6ngxhk/archivos_estadistica/consulta_interna.csv?updatedAt=1760549406437');
 
-  const csvUrl = 'https://ik.imagekit.io/nhu6ngxhk/archivos_estadistica/consulta_interna.csv?updatedAt=1760549406437';
-
+  // Cargar datos cuando cambie la URL
   useEffect(() => {
     loadCSVFromURL();
-  }, []);
+  }, [csvUrl]); // Agregar csvUrl como dependencia
 
   const loadCSVFromURL = async () => {
     try {
@@ -122,10 +126,10 @@ const CSVAnalysis = () => {
       labels,
       datasets: [
         {
-          label: `Consultas ${selectedYear}`,
+          label: `Consultas ${consulta} ${selectedYear}`,
           data: topData.map(row => row[selectedYear]),
-          backgroundColor: 'rgba(74, 107, 255, 0.6)',
-          borderColor: 'rgba(74, 107, 255, 1)',
+          backgroundColor: consulta === 'interna' ? 'rgba(74, 107, 255, 0.6)' : 'rgba(255, 107, 107, 0.6)',
+          borderColor: consulta === 'interna' ? 'rgba(74, 107, 255, 1)' : 'rgba(255, 107, 107, 1)',
           borderWidth: 2,
           borderRadius: 4,
         }
@@ -137,7 +141,7 @@ const CSVAnalysis = () => {
   const comparisonData = useMemo(() => {
     return processedData
       .sort((a, b) => b['2024'] - a['2024'])
-      .slice(0, 8)
+      .slice(0, 22)
       .map(dept => ({
         departamento: dept.departamento,
         '2020': dept['2020'],
@@ -176,6 +180,78 @@ const CSVAnalysis = () => {
       }));
   }, [processedData]);
 
+  // Cálculo de medidas de tendencia central
+  const medidasTendenciaCentral = useMemo(() => {
+    if (processedData.length === 0) return null;
+
+    const valores = processedData.map(dept => dept[selectedYear]).sort((a, b) => a - b);
+    const n = valores.length;
+
+    // Media
+    const media = valores.reduce((a, b) => a + b, 0) / n;
+
+    // Mediana
+    const mediana = n % 2 === 0
+      ? (valores[n / 2 - 1] + valores[n / 2]) / 2
+      : valores[Math.floor(n / 2)];
+
+    // Moda
+    const frecuencia = {};
+    let maxFreq = 0;
+    let moda = [];
+
+    valores.forEach(val => {
+      frecuencia[val] = (frecuencia[val] || 0) + 1;
+      if (frecuencia[val] > maxFreq) {
+        maxFreq = frecuencia[val];
+        moda = [val];
+      } else if (frecuencia[val] === maxFreq) {
+        moda.push(val);
+      }
+    });
+
+    // Cuartiles
+    const q1 = valores[Math.floor(n * 0.25)];
+    const q3 = valores[Math.floor(n * 0.75)];
+
+    // Rango intercuartílico
+    const rangoIntercuartilico = q3 - q1;
+
+    // Desviación estándar
+    const varianza = valores.reduce((acc, val) => acc + Math.pow(val - media, 2), 0) / n;
+    const desviacionEstandar = Math.sqrt(varianza);
+
+    // Varianza
+    const varianzaMuestral = valores.reduce((acc, val) => acc + Math.pow(val - media, 2), 0) / (n - 1);
+
+    return {
+      media: Math.round(media),
+      mediana: Math.round(mediana),
+      moda: moda.length > 3 ? 'Múltiples modas' : moda.map(m => Math.round(m)).join(', '),
+      modaValores: moda,
+      q1: Math.round(q1),
+      q3: Math.round(q3),
+      rangoIntercuartilico: Math.round(rangoIntercuartilico),
+      desviacionEstandar: Math.round(desviacionEstandar),
+      varianza: Math.round(varianza),
+      varianzaMuestral: Math.round(varianzaMuestral),
+      min: Math.min(...valores),
+      max: Math.max(...valores),
+      valores
+    };
+  }, [processedData, selectedYear]);
+
+  // Datos para gráfica de distribución con medidas de tendencia central
+  const distributionChartData = useMemo(() => {
+    if (!medidasTendenciaCentral) return [];
+
+    return medidasTendenciaCentral.valores.map((valor, index) => ({
+      x: index + 1,
+      y: valor,
+      departamento: processedData.find(dept => dept[selectedYear] === valor)?.departamento || 'Desconocido'
+    }));
+  }, [medidasTendenciaCentral, processedData, selectedYear]);
+
   // Colores para las gráficas
   const COLORS = ['#4A6BFF', '#FF6B6B', '#4ECDC4', '#FFD166', '#6A0572', '#118AB2', '#06D6A0', '#EF476F'];
 
@@ -193,7 +269,7 @@ const CSVAnalysis = () => {
       },
       title: {
         display: true,
-        text: `Top ${topNDepartments} Departamentos - Consultas ${selectedYear}`,
+        text: `Top ${topNDepartments} Departamentos - Consultas ${consulta} ${selectedYear}`,
         font: {
           size: 16,
           family: "'Inter', sans-serif",
@@ -254,7 +330,7 @@ const CSVAnalysis = () => {
       },
       title: {
         display: true,
-        text: 'Evolución de Consultas (2020-2024) - Top 5 Departamentos',
+        text: `Evolución de Consultas ${consulta} (2020-2024) - Top 5 Departamentos`,
         font: {
           size: 16,
           family: "'Inter', sans-serif",
@@ -302,7 +378,7 @@ const CSVAnalysis = () => {
     if (processedData.length > 0) {
       createChartData(processedData);
     }
-  }, [selectedYear, topNDepartments, processedData]);
+  }, [selectedYear, topNDepartments, processedData, consulta]);
 
   if (loading) {
     return (
@@ -329,9 +405,33 @@ const CSVAnalysis = () => {
   return (
     <div className="app-container">
       <header className="app-header">
-        <h1>📊 Análisis de Consultas Internas por Departamento</h1>
-        <p className="data-source">Datos cargados desde: {csvUrl}</p>
+        <h1>Análisis de Consultas por Departamento</h1>
+        <p className="data-source">
+          Visualizando: Consulta {consulta === 'interna' ? 'Interna' : 'Externa'}
+        </p>
       </header>
+
+      {/* Selector de tipo de consulta */}
+      <div className="tabs-container">
+        <button
+          className={`tab-button ${consulta === 'interna' ? 'active' : ''}`}
+          onClick={() => {
+            setCSVUrl('https://ik.imagekit.io/nhu6ngxhk/archivos_estadistica/consulta_interna.csv?updatedAt=1760549406437');
+            setConsulta('interna');
+          }}
+        >
+          📈 Consulta Interna
+        </button>
+        <button
+          className={`tab-button ${consulta === 'externa' ? 'active' : ''}`}
+          onClick={() => {
+            setCSVUrl('https://ik.imagekit.io/nhu6ngxhk/archivos_estadistica/consulta_externa.csv?updatedAt=1760629427472');
+            setConsulta('externa');
+          }}
+        >
+          📈 Consulta Externa
+        </button>
+      </div>
 
       <div className="controls-container">
         <div className="control-group">
@@ -384,17 +484,17 @@ const CSVAnalysis = () => {
           📊 Evolución Temporal
         </button>
         <button
-          className={`tab-button ${activeTab === 'pastel' ? 'active' : ''}`}
-          onClick={() => setActiveTab('pastel')}
+          className={`tab-button ${activeTab === 'tendencia' ? 'active' : ''}`}
+          onClick={() => setActiveTab('tendencia')}
         >
-          🥧 Distribución 2024
+          📐 Medidas de Tendencia
         </button>
       </div>
 
       <div className="charts-container">
         {activeTab === 'barras' && (
           <div className="chart-section">
-            <h2>Gráfica de Barras - Departamento vs Consultas</h2>
+            <h2>Gráfica de Barras - Departamento vs Consultas {consulta}</h2>
             <div className="chart-wrapper">
               {chartData && <Bar data={chartData} options={barOptions} />}
             </div>
@@ -403,7 +503,7 @@ const CSVAnalysis = () => {
 
         {activeTab === 'comparativa' && (
           <div className="chart-section">
-            <h2>Comparativa por Años (Top 8 Departamentos 2024)</h2>
+            <h2>Comparativa por Años - Consultas {consulta}</h2>
             <div className="chart-wrapper">
               <ResponsiveContainer width="100%" height={400}>
                 <BarChart data={comparisonData}>
@@ -437,7 +537,7 @@ const CSVAnalysis = () => {
 
         {activeTab === 'lineas' && (
           <div className="chart-section">
-            <h2>Evolución Temporal (Top 5 Departamentos)</h2>
+            <h2>Evolución Temporal - Consultas {consulta}</h2>
             <div className="chart-wrapper">
               <ResponsiveContainer width="100%" height={400}>
                 <LineChart data={lineChartData}>
@@ -493,60 +593,169 @@ const CSVAnalysis = () => {
           </div>
         )}
 
-        {activeTab === 'pastel' && (
+        {activeTab === 'tendencia' && medidasTendenciaCentral && (
           <div className="chart-section">
-            <h2>Distribución de Consultas 2024</h2>
-            <div className="chart-wrapper pie-chart-wrapper">
+            <h2>Medidas de Tendencia Central - Consultas {consulta} {selectedYear}</h2>
+
+            {/* Gráfica de distribución con medidas */}
+            <div className="chart-wrapper">
               <ResponsiveContainer width="100%" height={400}>
-                <PieChart>
-                  <Pie
-                    data={pieChartData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={true}
-                    label={({ name, percentage }) => `${name}: ${percentage}%`}
-                    outerRadius={120}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {pieChartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
+                <ScatterChart data={distributionChartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis
+                    dataKey="x"
+                    name="Posición"
+                    tick={{ fontSize: 12 }}
+                    label={{ value: 'Departamentos (ordenados)', position: 'insideBottom', offset: -5 }}
+                  />
+                  <YAxis
+                    tick={{ fontSize: 12 }}
+                    label={{ value: 'Número de Consultas', angle: -90, position: 'insideLeft' }}
+                  />
                   <Tooltip
-                    formatter={(value) => [value.toLocaleString(), 'Consultas']}
-                    contentStyle={{
-                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '8px'
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const data = payload[0].payload;
+                        return (
+                          <div className="custom-tooltip">
+                            <p className="tooltip-label">{`Departamento: ${data.departamento}`}</p>
+                            <p className="tooltip-value">{`Consultas: ${data.y.toLocaleString()}`}</p>
+                          </div>
+                        );
+                      }
+                      return null;
                     }}
                   />
-                  <Legend />
-                </PieChart>
+                  <ReferenceLine
+                    y={medidasTendenciaCentral.media}
+                    stroke="#4A6BFF"
+                    strokeWidth={2}
+                    label={{ value: `Media: ${medidasTendenciaCentral.media.toLocaleString()}`, position: 'right' }}
+                  />
+                  <ReferenceLine
+                    y={medidasTendenciaCentral.mediana}
+                    stroke="#FF6B6B"
+                    strokeWidth={2}
+                    strokeDasharray="5 5"
+                    label={{ value: `Mediana: ${medidasTendenciaCentral.mediana.toLocaleString()}`, position: 'right' }}
+                  />
+                  <ReferenceLine
+                    y={medidasTendenciaCentral.q1}
+                    stroke="#4ECDC4"
+                    strokeWidth={1}
+                    strokeDasharray="3 3"
+                  />
+                  <ReferenceLine
+                    y={medidasTendenciaCentral.q3}
+                    stroke="#4ECDC4"
+                    strokeWidth={1}
+                    strokeDasharray="3 3"
+                  />
+                  <Scatter data={distributionChartData} fill="#8884d8" />
+                </ScatterChart>
               </ResponsiveContainer>
+            </div>
+
+            {/* Tabla de medidas */}
+            <div className="measures-container">
+              <h3>Resumen de Medidas Estadísticas</h3>
+              <div className="measures-grid">
+                <div className="measure-card">
+                  <div className="measure-icon">📊</div>
+                  <div className="measure-value">{medidasTendenciaCentral.media.toLocaleString()}</div>
+                  <div className="measure-label">Media Aritmética</div>
+                  <div className="measure-description">Promedio de consultas por departamento</div>
+                </div>
+
+                <div className="measure-card">
+                  <div className="measure-icon">⚖️</div>
+                  <div className="measure-value">{medidasTendenciaCentral.mediana.toLocaleString()}</div>
+                  <div className="measure-label">Mediana</div>
+                  <div className="measure-description">Valor central de la distribución</div>
+                </div>
+
+                <div className="measure-card">
+                  <div className="measure-icon">🔢</div>
+                  <div className="measure-value">{medidasTendenciaCentral.moda}</div>
+                  <div className="measure-label">Moda</div>
+                  <div className="measure-description">Valor(es) más frecuente(s)</div>
+                </div>
+
+                <div className="measure-card">
+                  <div className="measure-icon">📏</div>
+                  <div className="measure-value">{medidasTendenciaCentral.desviacionEstandar.toLocaleString()}</div>
+                  <div className="measure-label">Desviación Estándar</div>
+                  <div className="measure-description">Dispersión de los datos</div>
+                </div>
+
+                <div className="measure-card">
+                  <div className="measure-icon">📐</div>
+                  <div className="measure-value">{medidasTendenciaCentral.varianza.toLocaleString()}</div>
+                  <div className="measure-label">Varianza</div>
+                  <div className="measure-description">Variabilidad de los datos</div>
+                </div>
+
+                <div className="measure-card">
+                  <div className="measure-icon">📋</div>
+                  <div className="measure-value">{medidasTendenciaCentral.rangoIntercuartilico.toLocaleString()}</div>
+                  <div className="measure-label">Rango Intercuartílico</div>
+                  <div className="measure-description">Q3 - Q1 (dispersión del 50% central)</div>
+                </div>
+              </div>
+
+              {/* Información adicional */}
+              <div className="additional-info">
+                <h4>Información Adicional</h4>
+                <div className="info-grid">
+                  <div className="info-item">
+                    <span className="info-label">Mínimo:</span>
+                    <span className="info-value">{medidasTendenciaCentral.min.toLocaleString()}</span>
+                  </div>
+                  <div className="info-item">
+                    <span className="info-label">Máximo:</span>
+                    <span className="info-value">{medidasTendenciaCentral.max.toLocaleString()}</span>
+                  </div>
+                  <div className="info-item">
+                    <span className="info-label">Primer Cuartil (Q1):</span>
+                    <span className="info-value">{medidasTendenciaCentral.q1.toLocaleString()}</span>
+                  </div>
+                  <div className="info-item">
+                    <span className="info-label">Tercer Cuartil (Q3):</span>
+                    <span className="info-value">{medidasTendenciaCentral.q3.toLocaleString()}</span>
+                  </div>
+                  <div className="info-item">
+                    <span className="info-label">Rango:</span>
+                    <span className="info-value">{(medidasTendenciaCentral.max - medidasTendenciaCentral.min).toLocaleString()}</span>
+                  </div>
+                  <div className="info-item">
+                    <span className="info-label">Número de Departamentos:</span>
+                    <span className="info-value">{processedData.length}</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}
       </div>
 
       <div className="stats-container">
-        <h3>Resumen Estadístico 2024</h3>
+        <h3>Resumen Estadístico {selectedYear} - Consultas {consulta}</h3>
         <div className="stats-grid">
           <div className="stat-card">
             <div className="stat-value">
-              {processedData.reduce((sum, dept) => sum + dept['2024'], 0).toLocaleString()}
+              {processedData.reduce((sum, dept) => sum + dept[selectedYear], 0).toLocaleString()}
             </div>
             <div className="stat-label">Total Consultas</div>
           </div>
           <div className="stat-card">
             <div className="stat-value">
-              {Math.max(...processedData.map(dept => dept['2024'])).toLocaleString()}
+              {Math.max(...processedData.map(dept => dept[selectedYear])).toLocaleString()}
             </div>
-            <div className="stat-label">Máximo (Guatemala)</div>
+            <div className="stat-label">Máximo</div>
           </div>
           <div className="stat-card">
             <div className="stat-value">
-              {Math.round(processedData.reduce((sum, dept) => sum + dept['2024'], 0) / processedData.length).toLocaleString()}
+              {Math.round(processedData.reduce((sum, dept) => sum + dept[selectedYear], 0) / processedData.length).toLocaleString()}
             </div>
             <div className="stat-label">Promedio por Depto.</div>
           </div>
@@ -556,4 +765,4 @@ const CSVAnalysis = () => {
   );
 };
 
-export default CSVAnalysis;
+export default ConsultasDashboard;

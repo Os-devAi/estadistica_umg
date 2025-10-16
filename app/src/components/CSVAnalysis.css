@@ -6,8 +6,7 @@
 }
 
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;    
     min-height: 100vh;
 }
 
@@ -20,21 +19,19 @@ body {
 .app-header {
     text-align: center;
     margin-bottom: 30px;
-    background: white;
+    background: #2c3e50;
     padding: 30px;
     border-radius: 16px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    color: white;
     border: 1px solid #e2e8f0;
 }
 
-.app-header h1 {
-    color: #2d3748;
+.app-header h1 {    
     font-size: 2.5rem;
     font-weight: 700;
     margin-bottom: 10px;
-    background: linear-gradient(135deg, #4A6BFF, #6A0572);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: white;
     background-clip: text;
 }
 
@@ -317,5 +314,169 @@ body {
 
     .chart-wrapper {
         height: 300px;
+    }
+}
+
+/* Agregar estas reglas al archivo CSVAnalysis.css existente */
+
+.measures-container {
+    margin-top: 30px;
+}
+
+.measures-container h3 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #2d3748;
+}
+
+.measures-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.measure-card {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e2e8f0;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.measure-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+}
+
+.measure-icon {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+}
+
+.measure-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #4A6BFF;
+    margin-bottom: 8px;
+}
+
+.measure-label {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 8px;
+}
+
+.measure-description {
+    font-size: 0.9rem;
+    color: #718096;
+    line-height: 1.4;
+}
+
+.additional-info {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e2e8f0;
+}
+
+.additional-info h4 {
+    color: #2d3748;
+    margin-bottom: 20px;
+    text-align: center;
+    font-size: 1.2rem;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.info-item:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    font-weight: 600;
+    color: #4a5568;
+}
+
+.info-value {
+    font-weight: 700;
+    color: #4A6BFF;
+    background: #f7fafc;
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+
+.custom-tooltip {
+    background: white;
+    padding: 12px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e2e8f0;
+}
+
+.tooltip-label {
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 5px;
+}
+
+.tooltip-value {
+    color: #4A6BFF;
+    font-weight: 700;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .measures-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .measure-card {
+        padding: 20px;
+    }
+
+    .measure-value {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .measures-grid {
+        gap: 15px;
+    }
+
+    .additional-info {
+        padding: 20px;
+    }
+
+    .info-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+
+    .info-value {
+        align-self: flex-start;
     }
 }
