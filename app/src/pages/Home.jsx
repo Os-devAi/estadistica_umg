@@ -46,16 +46,11 @@ const Home = () => {
 
                     <div class="card">
                         <div class="card-header">
-                            <h3>Hospitalizaciones</h3>
+                            <h3>Causas de atencion interna</h3>
                             <div class="card-icon">🛌</div>
                         </div>
-                        <div class="card-body">
-                            <div class="indicator-value">8,742</div>
-                            <div class="indicator-description">Número de hospitalizaciones (servicios internos)</div>
-                            <div class="indicator-trend trend-down">
-                                <span>↓ 2.1%</span>
-                                <span>vs año anterior</span>
-                            </div>
+                        <div class="card-body">                            
+                            <div class="indicator-description">Por causa, rango de edades y genero (servicios internos)</div>
                         </div>
                     </div>
 
