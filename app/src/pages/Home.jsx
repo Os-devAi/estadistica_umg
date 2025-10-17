@@ -26,6 +26,13 @@ const Home = () => {
         navigation(`hospitales`);
     };
 
+    const goToVacunas = () => {
+        navigation(`vacunas`);
+    };
+
+    const goToPoblacion = () => {
+        navigation(`poblacion`);
+    }
 
     return (
         <>
@@ -33,7 +40,7 @@ const Home = () => {
                 <div class="header-container">
                     <div class="logo-section">
                         <div class="logo">
-                            <img src="" alt="UMG LOGO" />
+                            <img src="https://quizizz.com/media/resource/gs/quizizz-media/quizzes/7bc1c8d5-f0af-4b93-9262-00a8361541ac" alt="UMG LOGO" />
                         </div>
                         <div class="title-section">
                             <h1>UMG Salamá - Estadística 1</h1>
@@ -97,8 +104,20 @@ const Home = () => {
                         </div>
                     </div>
 
+                    {/* <!-- Salud adicional --> */}
+                    <div class="card" onClick={goToVacunas}>
+                        <div class="card-header">
+                            <h3>Cobertura de Vacunación</h3>
+                            <div class="card-icon">💉</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="indicator-value">63.7%</div>
+                            <div class="indicator-description">Promedio de Cobertura</div>
+                        </div>
+                    </div>
+
                     {/* <!-- Demografía --> */}
-                    <div class="card">
+                    <div class="card" onClick={goToPoblacion}>
                         <div class="card-header">
                             <h3>Población Total</h3>
                             <div class="card-icon">👥</div>
@@ -132,18 +151,6 @@ const Home = () => {
                         </div>
                         <div class="card-body">
                             <div class="indicator-description">Porcentaje de pobreza por departamento</div>
-                        </div>
-                    </div>
-
-                    {/* <!-- Salud adicional --> */}
-                    <div class="card">
-                        <div class="card-header">
-                            <h3>Cobertura de Vacunación</h3>
-                            <div class="card-icon">💉</div>
-                        </div>
-                        <div class="card-body">
-                            <div class="indicator-value">78%</div>
-                            <div class="indicator-description">% de niños con esquema completo</div>
                         </div>
                     </div>
 
