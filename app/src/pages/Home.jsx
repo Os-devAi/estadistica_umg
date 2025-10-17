@@ -22,6 +22,10 @@ const Home = () => {
         navigation(`atencion/tratamiento`);
     };
 
+    const goToHospitales = () => {
+        navigation(`hospitales`);
+    };
+
 
     return (
         <>
@@ -82,6 +86,17 @@ const Home = () => {
                         </div>
                     </div>
 
+                    <div class="card" onClick={goToHospitales}>
+                        <div class="card-header">
+                            <h3>Hospitales Nacionales</h3>
+                            <div class="card-icon">🏛️</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="indicator-value">48</div>
+                            <div class="indicator-description">Número estimado de hospitales</div>
+                        </div>
+                    </div>
+
                     {/* <!-- Demografía --> */}
                     <div class="card">
                         <div class="card-header">
@@ -107,16 +122,7 @@ const Home = () => {
                     </div>
 
                     {/* <!-- Infraestructura --> */}
-                    <div class="card">
-                        <div class="card-header">
-                            <h3>Centros de Salud</h3>
-                            <div class="card-icon">🏛️</div>
-                        </div>
-                        <div class="card-body">
-                            <div class="indicator-value">342</div>
-                            <div class="indicator-description">Número de hospitales y centros de salud</div>
-                        </div>
-                    </div>
+
 
                     {/* <!-- Economía --> */}
                     <div class="card">
