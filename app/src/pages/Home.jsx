@@ -33,7 +33,7 @@ const Home = () => {
                 <div class="header-container">
                     <div class="logo-section">
                         <div class="logo">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Escudo_de_la_universidad_Mariano_G%C3%A1lvez_Guatemala.svg/1200px-Escudo_de_la_universidad_Mariano_G%C3%A1lvez_Guatemala.svg.png" alt="UMG LOGO" />
+                            <img src="" alt="UMG LOGO" />
                         </div>
                         <div class="title-section">
                             <h1>UMG Salamá - Estadística 1</h1>
