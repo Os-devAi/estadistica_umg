@@ -10,6 +10,15 @@ const Home = () => {
         navigation(`consulta/interna`);
     };
 
+    const goToCausaInterna = () => {
+        navigation(`causa/interna`);
+    };
+
+    const goToDias = () => {
+        navigation(`promedio/dias`);
+    };
+
+
     return (
         <>
             <header>
@@ -19,8 +28,8 @@ const Home = () => {
                             <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Escudo_de_la_universidad_Mariano_G%C3%A1lvez_Guatemala.svg/1200px-Escudo_de_la_universidad_Mariano_G%C3%A1lvez_Guatemala.svg.png" alt="UMG LOGO" />
                         </div>
                         <div class="title-section">
-                            <h1>Estadística I UMG</h1>
-                            <p>Salud y Economía | Ingeniería en Sistemas 2.º  B</p>
+                            <h1>UMG Salamá - Estadística 1</h1>
+                            <p>Salud | Ingeniería en Sistemas 2.º  B</p>
                         </div>
                     </div>
                 </div>
@@ -35,22 +44,27 @@ const Home = () => {
                             <div class="card-icon">🏥</div>
                         </div>
                         <div class="card-body">
-                            {/* <div class="indicator-value">24,580</div> */}
                             <div class="indicator-description">Número de consultas externas por departamento</div>
-                            {/* <div class="indicator-trend trend-up">
-                                <span>↑ 5.2%</span>
-                                <span>vs año anterior</span>
-                            </div> */}
                         </div>
                     </div>
 
-                    <div class="card">
+                    <div class="card" on onClick={goToCausaInterna}>
                         <div class="card-header">
                             <h3>Causas de atencion interna</h3>
                             <div class="card-icon">🛌</div>
                         </div>
-                        <div class="card-body">                            
+                        <div class="card-body">
                             <div class="indicator-description">Por causa, rango de edades y genero (servicios internos)</div>
+                        </div>
+                    </div>
+
+                    <div class="card" onClick={goToDias}>
+                        <div class="card-header">
+                            <h3>Días de Hospitalización</h3>
+                            <div class="card-icon">📅</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="indicator-description">Promedio de días de hospitalización</div>
                         </div>
                     </div>
 
@@ -60,27 +74,7 @@ const Home = () => {
                             <div class="card-icon">👨‍⚕️</div>
                         </div>
                         <div class="card-body">
-                            <div class="indicator-value">3.8</div>
                             <div class="indicator-description">Tasa de atención médica por cada 1,000 habitantes</div>
-                            <div class="indicator-trend trend-up">
-                                <span>↑ 0.3</span>
-                                <span>vs año anterior</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card">
-                        <div class="card-header">
-                            <h3>Días de Hospitalización</h3>
-                            <div class="card-icon">📅</div>
-                        </div>
-                        <div class="card-body">
-                            <div class="indicator-value">4.2</div>
-                            <div class="indicator-description">Promedio de días de hospitalización</div>
-                            <div class="indicator-trend trend-neutral">
-                                <span>→ Sin cambio</span>
-                                <span>vs año anterior</span>
-                            </div>
                         </div>
                     </div>
 
@@ -94,8 +88,6 @@ const Home = () => {
                             <div class="indicator-value">17.2M</div>
                             <div class="indicator-description">Población total por departamento</div>
                             <div class="indicator-trend trend-up">
-                                <span>↑ 1.8%</span>
-                                <span>vs año anterior</span>
                             </div>
                         </div>
                     </div>
@@ -107,11 +99,6 @@ const Home = () => {
                         </div>
                         <div class="card-body">
                             <div class="indicator-value">158</div>
-                            <div class="indicator-description">Habitantes por km²</div>
-                            <div class="indicator-trend trend-up">
-                                <span>↑ 2.7%</span>
-                                <span>vs año anterior</span>
-                            </div>
                         </div>
                     </div>
 
@@ -124,10 +111,6 @@ const Home = () => {
                         <div class="card-body">
                             <div class="indicator-value">342</div>
                             <div class="indicator-description">Número de hospitales y centros de salud</div>
-                            <div class="indicator-trend trend-up">
-                                <span>↑ 12</span>
-                                <span>nuevos centros</span>
-                            </div>
                         </div>
                     </div>
 
@@ -138,12 +121,7 @@ const Home = () => {
                             <div class="card-icon">💰</div>
                         </div>
                         <div class="card-body">
-                            <div class="indicator-value">59.3%</div>
                             <div class="indicator-description">Porcentaje de pobreza por departamento</div>
-                            <div class="indicator-trend trend-down">
-                                <span>↓ 1.2%</span>
-                                <span>vs año anterior</span>
-                            </div>
                         </div>
                     </div>
 
@@ -156,10 +134,6 @@ const Home = () => {
                         <div class="card-body">
                             <div class="indicator-value">78%</div>
                             <div class="indicator-description">% de niños con esquema completo</div>
-                            <div class="indicator-trend trend-up">
-                                <span>↑ 4.5%</span>
-                                <span>vs año anterior</span>
-                            </div>
                         </div>
                     </div>
 
@@ -170,12 +144,8 @@ const Home = () => {
                             <div class="card-icon">🚰</div>
                         </div>
                         <div class="card-body">
-                            <div class="indicator-value">87%</div>
                             <div class="indicator-description">% de hogares con acceso a agua potable</div>
-                            <div class="indicator-trend trend-up">
-                                <span>↑ 2.3%</span>
-                                <span>vs año anterior</span>
-                            </div>
+
                         </div>
                     </div>
                 </section>

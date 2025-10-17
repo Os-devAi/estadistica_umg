@@ -1,487 +1,195 @@
-// App.js
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState } from 'react';
 import './CausaHospitalizacion.css';
-import Papa from 'papaparse';
-import {
-    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-    PieChart, Pie, Cell, LineChart, Line
-} from 'recharts';
-
-const CSV_URL = 'https://ik.imagekit.io/nhu6ngxhk/archivos_estadistica/interna_causa_atencion_sexo_edades.csv?updatedAt=1760649619603';
-
-// Colores para las gráficas
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];
 
 function CausaHospitalizacion() {
-    const [selectedAgeGroup, setSelectedAgeGroup] = useState('Todas las edades');
-    const [selectedCause, setSelectedCause] = useState('Todas las causas');
-    const [rawData, setRawData] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const [modalOpen, setModalOpen] = useState(false);
+    const [modalImage, setModalImage] = useState('');
+    const [modalCaption, setModalCaption] = useState('');
 
-    // Cargar datos desde la URL
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                setLoading(true);
-                setError(null);
-
-                console.log('Iniciando carga de datos desde:', CSV_URL);
-
-                const response = await fetch(CSV_URL);
-                if (!response.ok) {
-                    throw new Error(`Error HTTP: ${response.status}`);
-                }
-
-                const csvText = await response.text();
-                console.log('Texto CSV recibido');
-
-                // Parsear manualmente para debug
-                const lines = csvText.split('\n');
-                console.log('Primeras líneas:', lines.slice(0, 5));
-
-                Papa.parse(csvText, {
-                    header: true,
-                    skipEmptyLines: true,
-                    complete: (results) => {
-                        console.log('Datos parseados:', results.data.length);
-                        console.log('Columnas:', results.meta.fields);
-
-                        if (results.data.length > 0) {
-                            setRawData(results.data);
-                        } else {
-                            throw new Error('CSV vacío o no se pudieron parsear datos');
-                        }
-                        setLoading(false);
-                    },
-                    error: (error) => {
-                        console.error('Error en parseo:', error);
-                        throw new Error('Error parseando CSV');
-                    }
-                });
-            } catch (err) {
-                console.error('Error:', err);
-                setError(err.message);
-                setLoading(false);
-            }
-        };
-
-        fetchData();
-    }, []);
-
-    // Función para limpiar números
-    const cleanNumber = (str) => {
-        if (!str || str === '-' || str === ' -' || str.trim() === '') return 0;
-
-        // Limpiar el string
-        const cleanStr = String(str).replace(/[,\s]/g, '').trim();
-        const num = parseInt(cleanStr);
-
-        return isNaN(num) ? 0 : num;
+    const abrirModal = (src, alt) => {
+        setModalImage(src);
+        setModalCaption(alt);
+        setModalOpen(true);
     };
 
-    // Procesar datos
-    const processedData = useMemo(() => {
-        if (!rawData || rawData.length === 0) return [];
-
-        return rawData
-            .filter(row => row.grupos_de_edad && row.causa_de_atencion)
-            .map(row => ({
-                grupos_de_edad: (row.grupos_de_edad || '').trim(),
-                causa_de_atencion: (row.causa_de_atencion || '').trim(),
-                Total: cleanNumber(row.Total),
-                Hombres: cleanNumber(row.Hombres),
-                Mujeres: cleanNumber(row.Mujeres),
-                Ignorado: cleanNumber(row.Ignorado)
-            }))
-            .filter(row => row.Total > 0); // Solo filas con datos válidos
-    }, [rawData]);
-
-    // Filtrar datos según selección
-    const filteredData = useMemo(() => {
-        return processedData.filter(row =>
-            (selectedAgeGroup === 'Todas las edades' || row.grupos_de_edad === selectedAgeGroup) &&
-            (selectedCause === 'Todas las causas' || row.causa_de_atencion === selectedCause)
-        );
-    }, [processedData, selectedAgeGroup, selectedCause]);
-
-    // Obtener grupos de edad únicos
-    const ageGroups = useMemo(() => {
-        const groups = [...new Set(processedData.map(row => row.grupos_de_edad))];
-        return groups.sort((a, b) => {
-            if (a === 'Todas las edades') return -1;
-            if (b === 'Todas las edades') return 1;
-            if (a === 'Ignorado') return 1;
-            if (b === 'Ignorado') return -1;
-            return a.localeCompare(b, undefined, { numeric: true });
-        });
-    }, [processedData]);
-
-    // Obtener causas únicas
-    const causes = useMemo(() => {
-        const uniqueCauses = [...new Set(processedData.map(row => row.causa_de_atencion))];
-        return uniqueCauses.sort((a, b) => {
-            if (a === 'Todas las causas') return -1;
-            if (b === 'Todas las causas') return 1;
-            return a.localeCompare(b);
-        });
-    }, [processedData]);
-
-    // DATOS PARA GRÁFICAS
-
-    // 1. Distribución por grupos de edad (Top 10)
-    const ageGroupDistribution = useMemo(() => {
-        const distribution = {};
-        processedData.forEach(row => {
-            if (row.grupos_de_edad !== 'Todas las edades') {
-                distribution[row.grupos_de_edad] = (distribution[row.grupos_de_edad] || 0) + row.Total;
-            }
-        });
-
-        return Object.entries(distribution)
-            .map(([name, value]) => ({ name, value }))
-            .sort((a, b) => b.value - a.value)
-            .slice(0, 10);
-    }, [processedData]);
-
-    // 2. Top 10 causas más comunes
-    const topCauses = useMemo(() => {
-        const causeTotals = {};
-        processedData.forEach(row => {
-            if (row.causa_de_atencion !== 'Todas las causas') {
-                causeTotals[row.causa_de_atencion] = (causeTotals[row.causa_de_atencion] || 0) + row.Total;
-            }
-        });
-
-        return Object.entries(causeTotals)
-            .map(([name, value]) => ({ name, value }))
-            .sort((a, b) => b.value - a.value)
-            .slice(0, 10);
-    }, [processedData]);
-
-    // 3. Distribución por género para datos filtrados
-    const genderData = useMemo(() => {
-        const totalHombres = filteredData.reduce((sum, row) => sum + row.Hombres, 0);
-        const totalMujeres = filteredData.reduce((sum, row) => sum + row.Mujeres, 0);
-        const totalIgnorado = filteredData.reduce((sum, row) => sum + row.Ignorado, 0);
-
-        return [
-            { name: 'Hombres', value: totalHombres },
-            { name: 'Mujeres', value: totalMujeres },
-            { name: 'Ignorado', value: totalIgnorado }
-        ].filter(item => item.value > 0);
-    }, [filteredData]);
-
-    // 4. Evolución por grupos de edad para una causa específica
-    const ageTrendData = useMemo(() => {
-        if (selectedCause === 'Todas las causas') return [];
-
-        const ageOrder = [
-            '0 - 4 años', '5 - 9 años', '10 - 14 años', '15 - 19 años',
-            '20 - 24 años', '25 - 29 años', '30 - 34 años', '35 - 39 años',
-            '40 - 44 años', '45 - 49 años', '50 - 54 años', '55 - 59 años',
-            '60 - 64 años', '65 - 69 años', '70 - 74 años', '75 - 79 años', '80 y más'
-        ];
-
-        const trend = {};
-        processedData.forEach(row => {
-            if (row.causa_de_atencion === selectedCause && ageOrder.includes(row.grupos_de_edad)) {
-                trend[row.grupos_de_edad] = (trend[row.grupos_de_edad] || 0) + row.Total;
-            }
-        });
-
-        return ageOrder
-            .filter(age => trend[age])
-            .map(age => ({
-                name: age,
-                atenciones: trend[age]
-            }));
-    }, [processedData, selectedCause]);
-
-    // 5. Distribución de causas por grupo de edad seleccionado
-    const causesByAgeGroup = useMemo(() => {
-        if (selectedAgeGroup === 'Todas las edades') return [];
-
-        return processedData
-            .filter(row => row.grupos_de_edad === selectedAgeGroup && row.causa_de_atencion !== 'Todas las causas')
-            .sort((a, b) => b.Total - a.Total)
-            .slice(0, 10)
-            .map(row => ({
-                name: row.causa_de_atencion.length > 30
-                    ? row.causa_de_atencion.substring(0, 30) + '...'
-                    : row.causa_de_atencion,
-                atenciones: row.Total
-            }));
-    }, [processedData, selectedAgeGroup]);
-
-    // Cálculos estadísticos (igual que antes)
-    const stats = useMemo(() => {
-        const totals = filteredData.map(row => row.Total).filter(val => val > 0);
-        if (totals.length === 0) return null;
-
-        const sortedTotals = [...totals].sort((a, b) => a - b);
-        const n = sortedTotals.length;
-
-        const mean = totals.reduce((sum, val) => sum + val, 0) / n;
-        const median = n % 2 === 0
-            ? (sortedTotals[n / 2 - 1] + sortedTotals[n / 2]) / 2
-            : sortedTotals[Math.floor(n / 2)];
-
-        const frequency = {};
-        let maxFreq = 0;
-        let mode = [];
-        totals.forEach(val => {
-            frequency[val] = (frequency[val] || 0) + 1;
-            if (frequency[val] > maxFreq) {
-                maxFreq = frequency[val];
-                mode = [val];
-            } else if (frequency[val] === maxFreq) {
-                mode.push(val);
-            }
-        });
-
-        const q1Index = Math.floor(n * 0.25);
-        const q3Index = Math.floor(n * 0.75);
-        const q1 = sortedTotals[q1Index] || 0;
-        const q3 = sortedTotals[q3Index] || 0;
-
-        const range = Math.max(...totals) - Math.min(...totals);
-        const variance = totals.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / n;
-        const stdDev = Math.sqrt(variance);
-
-        return {
-            count: n,
-            mean: Math.round(mean * 100) / 100,
-            median: Math.round(median * 100) / 100,
-            mode: [...new Set(mode)].map(val => Math.round(val * 100) / 100),
-            range: Math.round(range * 100) / 100,
-            variance: Math.round(variance * 100) / 100,
-            stdDev: Math.round(stdDev * 100) / 100,
-            q1: Math.round(q1 * 100) / 100,
-            q2: Math.round(median * 100) / 100,
-            q3: Math.round(q3 * 100) / 100,
-            min: Math.min(...totals),
-            max: Math.max(...totals)
-        };
-    }, [filteredData]);
-
-    // Distribución por género
-    const genderDistribution = useMemo(() => {
-        const totalHombres = filteredData.reduce((sum, row) => sum + row.Hombres, 0);
-        const totalMujeres = filteredData.reduce((sum, row) => sum + row.Mujeres, 0);
-        const totalIgnorado = filteredData.reduce((sum, row) => sum + row.Ignorado, 0);
-        const totalGeneral = totalHombres + totalMujeres + totalIgnorado;
-
-        return {
-            hombres: totalHombres,
-            mujeres: totalMujeres,
-            ignorado: totalIgnorado,
-            total: totalGeneral,
-            porcentajeHombres: totalGeneral > 0 ? (totalHombres / totalGeneral * 100) : 0,
-            porcentajeMujeres: totalGeneral > 0 ? (totalMujeres / totalGeneral * 100) : 0,
-            porcentajeIgnorado: totalGeneral > 0 ? (totalIgnorado / totalGeneral * 100) : 0
-        };
-    }, [filteredData]);
-
-    if (loading) {
-        return (
-            <div className="causa-hospitalizacion">
-                <div className="loading">
-                    <div className="spinner"></div>
-                    <h2>Cargando datos...</h2>
-                </div>
-            </div>
-        );
-    }
-
-    if (error) {
-        return (
-            <div className="causa-hospitalizacion">
-                <div className="error">
-                    <h2>Error al cargar los datos</h2>
-                    <p>{error}</p>
-                    <button onClick={() => window.location.reload()}>Reintentar</button>
-                </div>
-            </div>
-        );
-    }
+    const cerrarModal = () => {
+        setModalOpen(false);
+    };
 
     return (
         <div className="causa-hospitalizacion">
             <header className="app-header">
                 <h1>Análisis Estadístico de Causas de Atención Médica</h1>
-                <p>Visualización interactiva de datos hospitalarios</p>
+                <p className="subtitulo">
+                    Visualización de datos de hospitalización y atención médica
+                </p>
             </header>
 
-            <div className="controls">
-                <div className="filter-group">
-                    <label>Grupo de Edad:</label>
-                    <select value={selectedAgeGroup} onChange={(e) => setSelectedAgeGroup(e.target.value)}>
-                        {ageGroups.map(group => (
-                            <option key={group} value={group}>{group}</option>
-                        ))}
-                    </select>
-                </div>
+            <main className="graficas-grid">
+                <section className="contenedor-grafica">
+                    <h2>Las 10 causas más comunes de consulta interna</h2>
+                    <img
+                        className="imagen-grafica"
+                        src="https://ik.imagekit.io/nhu6ngxhk/imagenes_estadistica/top_causas_de_atencion.jpeg"
+                        alt="Causas más comunes de consulta interna"
+                        onClick={() =>
+                            abrirModal(
+                                'https://ik.imagekit.io/nhu6ngxhk/imagenes_estadistica/top_causas_de_atencion.jpeg',
+                                'Causas más comunes de consulta interna'
+                            )
+                        }
+                    />
+                </section>
 
-                <div className="filter-group">
-                    <label>Causa de Atención:</label>
-                    <select value={selectedCause} onChange={(e) => setSelectedCause(e.target.value)}>
-                        {causes.map(cause => (
-                            <option key={cause} value={cause}>{cause}</option>
-                        ))}
-                    </select>
-                </div>
-            </div>
+                <section className="contenedor-grafica">
+                    <h2>Distribución de atenciones médicas por edad</h2>
+                    <img
+                        className="imagen-grafica"
+                        src="https://ik.imagekit.io/nhu6ngxhk/imagenes_estadistica/distribucion%20por%20grupos%20de%20edad.jpeg"
+                        alt="Distribución de atenciones por edad"
+                        onClick={() =>
+                            abrirModal(
+                                'https://ik.imagekit.io/nhu6ngxhk/imagenes_estadistica/distribucion%20por%20grupos%20de%20edad.jpeg',
+                                'Distribución de atenciones por edad'
+                            )
+                        }
+                    />
+                </section>
 
-            {/* SECCIÓN DE GRÁFICAS */}
-            <div className="charts-section">
-                <h2>Visualizaciones de Datos</h2>
+                <section className="contenedor-grafica">
+                    <h2>Comparación de atención entre hombres y mujeres según rangos de edad</h2>
+                    <img
+                        className="imagen-grafica"
+                        src="https://ik.imagekit.io/nhu6ngxhk/imagenes_estadistica/comparativa%20de%20atencion%20hombre%20mujeres%20por%20edad.jpeg"
+                        alt="Comparación hombres vs mujeres"
+                        onClick={() =>
+                            abrirModal(
+                                'https://ik.imagekit.io/nhu6ngxhk/imagenes_estadistica/comparativa%20de%20atencion%20hombre%20mujeres%20por%20edad.jpeg',
+                                'Comparación hombres vs mujeres'
+                            )
+                        }
+                    />
+                </section>
 
-                <div className="charts-grid">
-                    {/* Gráfica 1: Distribución por Grupos de Edad */}
-                    <div className="chart-card">
-                        <h3>Top 10 Grupos de Edad con Más Atenciones</h3>
-                        <ResponsiveContainer width="100%" height={300}>
-                            <BarChart data={ageGroupDistribution}>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
-                                <YAxis />
-                                <Tooltip formatter={(value) => [value.toLocaleString(), 'Atenciones']} />
-                                <Legend />
-                                <Bar dataKey="value" name="Atenciones" fill="#8884d8" />
-                            </BarChart>
-                        </ResponsiveContainer>
+                <section className="contenedor-grafica">
+                    <h2>Distribución de enfermedades renales por grupo de edad</h2>
+                    <img
+                        className="imagen-grafica"
+                        src="https://ik.imagekit.io/nhu6ngxhk/imagenes_estadistica/evolucion%20de%20enfermedades%20renales.jpeg"
+                        alt="Comparación hombres vs mujeres"
+                        onClick={() =>
+                            abrirModal(
+                                'https://ik.imagekit.io/nhu6ngxhk/imagenes_estadistica/evolucion%20de%20enfermedades%20renales.jpeg',
+                                ''
+                            )
+                        }
+                    />
+                </section>
+
+                <section className="contenedor-grafica">
+                    <h2>Distribución de enfermedades crónicas por genero</h2>
+                    <img
+                        className="imagen-grafica"
+                        src="https://ik.imagekit.io/nhu6ngxhk/imagenes_estadistica/distribucion%20por%20genero%20enfermedades%20cronicas.jpeg"
+                        alt="Comparación hombres vs mujeres"
+                        onClick={() =>
+                            abrirModal(
+                                'https://ik.imagekit.io/nhu6ngxhk/imagenes_estadistica/distribucion%20por%20genero%20enfermedades%20cronicas.jpeg',
+                                ''
+                            )
+                        }
+                    />
+                </section>
+
+                <section className="contenedor-grafica">
+                    <h2>5 Principales causas de atención</h2>
+                    <img
+                        className="imagen-grafica"
+                        src="https://ik.imagekit.io/nhu6ngxhk/imagenes_estadistica/5%20principales%20causas%20de%20atencion.jpeg"
+                        alt="Comparación hombres vs mujeres"
+                        onClick={() =>
+                            abrirModal(
+                                'https://ik.imagekit.io/nhu6ngxhk/imagenes_estadistica/5%20principales%20causas%20de%20atencion.jpeg',
+                                ''
+                            )
+                        }
+                    />
+                </section>
+            </main>
+
+            {/* === Modal === */}
+            {modalOpen && (
+                <div className="modal" onClick={cerrarModal}>
+                    <div
+                        className="modal-content"
+                        onClick={(e) => e.stopPropagation()} // evita cerrar si clic dentro
+                    >
+                        <span className="close" onClick={cerrarModal}>
+                            &times;
+                        </span>
+                        <img src={modalImage} alt={modalCaption} />
+                        <p>{modalCaption}</p>
                     </div>
-
-                    {/* Gráfica 2: Top 10 Causas */}
-                    <div className="chart-card">
-                        <h3>Top 10 Causas de Atención Más Comunes</h3>
-                        <ResponsiveContainer width="100%" height={300}>
-                            <BarChart data={topCauses} layout="vertical">
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis type="number" />
-                                <YAxis type="category" dataKey="name" width={150} />
-                                <Tooltip formatter={(value) => [value.toLocaleString(), 'Atenciones']} />
-                                <Legend />
-                                <Bar dataKey="value" name="Atenciones" fill="#82ca9d" />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
-
-                    {/* Gráfica 3: Distribución por Género */}
-                    <div className="chart-card">
-                        <h3>Distribución por Género (Datos Filtrados)</h3>
-                        <ResponsiveContainer width="100%" height={300}>
-                            <PieChart>
-                                <Pie
-                                    data={genderData}
-                                    cx="50%"
-                                    cy="50%"
-                                    labelLine={false}
-                                    label={({ name, percent }) => `${name} (${(percent * 100).toFixed(1)}%)`}
-                                    outerRadius={80}
-                                    fill="#8884d8"
-                                    dataKey="value"
-                                >
-                                    {genderData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                    ))}
-                                </Pie>
-                                <Tooltip formatter={(value) => [value.toLocaleString(), 'Atenciones']} />
-                            </PieChart>
-                        </ResponsiveContainer>
-                    </div>
-
-                    {/* Gráfica 4: Evolución por Edad para Causa Seleccionada */}
-                    {ageTrendData.length > 0 && (
-                        <div className="chart-card">
-                            <h3>Evolución por Edad: {selectedCause}</h3>
-                            <ResponsiveContainer width="100%" height={300}>
-                                <LineChart data={ageTrendData}>
-                                    <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
-                                    <YAxis />
-                                    <Tooltip formatter={(value) => [value.toLocaleString(), 'Atenciones']} />
-                                    <Legend />
-                                    <Line type="monotone" dataKey="atenciones" stroke="#ff8042" activeDot={{ r: 8 }} />
-                                </LineChart>
-                            </ResponsiveContainer>
-                        </div>
-                    )}
-
-                    {/* Gráfica 5: Top Causas por Grupo de Edad Seleccionado */}
-                    {causesByAgeGroup.length > 0 && (
-                        <div className="chart-card">
-                            <h3>Top 10 Causas para {selectedAgeGroup}</h3>
-                            <ResponsiveContainer width="100%" height={300}>
-                                <BarChart data={causesByAgeGroup}>
-                                    <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
-                                    <YAxis />
-                                    <Tooltip formatter={(value) => [value.toLocaleString(), 'Atenciones']} />
-                                    <Legend />
-                                    <Bar dataKey="atenciones" name="Atenciones" fill="#0088FE" />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </div>
-                    )}
                 </div>
-            </div>
+            )}
 
-            {/* SECCIÓN DE ESTADÍSTICAS (igual que antes) */}
-            <div className="stats-container">
-                <div className="data-info">
-                    <p><strong>Total de registros:</strong> {processedData.length}</p>
-                    <p><strong>Registros filtrados:</strong> {filteredData.length}</p>
-                    <p><strong>Total atenciones:</strong> {genderDistribution.total.toLocaleString()}</p>
+            {/* === Sección de análisis estadístico === */}
+            <section className="analisis-estadistico">
+                <h2>📊 Análisis Estadístico Completo</h2>
+
+                <div className="analisis-card">
+                    <h3>1️⃣ Medidas Generales - Todas las Atenciones</h3>
+                    <ul>
+                        <li><strong>Total de observaciones:</strong> 33</li>
+                        <li><strong>Suma total:</strong> 700,042</li>
+                        <li><strong>Media:</strong> 21,213.39</li>
+                        <li><strong>Desviación estándar:</strong> 62,156.71</li>
+                        <li><strong>Rango:</strong> 348,291</li>
+                        <li><strong>Asimetría:</strong> 4.97</li>
+                        <li><strong>Curtosis:</strong> 26.31</li>
+                    </ul>
                 </div>
 
-                {stats && (
-                    <>
-                        <div className="stats-section">
-                            <h3>Medidas de Tendencia Central</h3>
-                            <div className="stats-grid">
-                                <div className="stat-card">
-                                    <h4>Media</h4>
-                                    <div className="stat-value">{stats.mean.toLocaleString()}</div>
-                                    <p>Promedio de atenciones</p>
-                                </div>
-                                <div className="stat-card">
-                                    <h4>Mediana</h4>
-                                    <div className="stat-value">{stats.median.toLocaleString()}</div>
-                                    <p>Valor central ordenado</p>
-                                </div>
-                                <div className="stat-card">
-                                    <h4>Moda</h4>
-                                    <div className="stat-value">
-                                        {stats.mode.slice(0, 3).map(m => m.toLocaleString()).join(', ')}
-                                        {stats.mode.length > 3 && '...'}
-                                    </div>
-                                    <p>Valor(es) más frecuente(s)</p>
-                                </div>
-                            </div>
-                        </div>
+                <div className="analisis-card">
+                    <h3>2️⃣ Medidas por Grupo de Edad</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Edad</th>
+                                <th>Media</th>
+                                <th>Mediana</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>0 - 4 años</td><td>29,827</td><td>29,827</td></tr>
+                            <tr><td>25 - 29 años</td><td>25,231</td><td>25,231</td></tr>
+                            <tr><td>60 - 64 años</td><td>28,093</td><td>28,093</td></tr>
+                            <tr><td>80 y más</td><td>12,646</td><td>12,646</td></tr>
+                        </tbody>
+                    </table>
+                </div>
 
-                        <div className="stats-section">
-                            <h3>Medidas de Dispersión</h3>
-                            <div className="stats-grid">
-                                <div className="stat-card">
-                                    <h4>Rango</h4>
-                                    <div className="stat-value">{stats.range.toLocaleString()}</div>
-                                </div>
-                                <div className="stat-card">
-                                    <h4>Desviación Estándar</h4>
-                                    <div className="stat-value">{stats.stdDev.toLocaleString()}</div>
-                                </div>
-                                <div className="stat-card">
-                                    <h4>Varianza</h4>
-                                    <div className="stat-value">{stats.variance.toLocaleString()}</div>
-                                </div>
-                            </div>
-                        </div>
-                    </>
-                )}
-            </div>
+                <div className="analisis-card">
+                    <h3>3️⃣ Comparación Hombres vs Mujeres</h3>
+                    <p><strong>Hombres:</strong> 187,044 (54%)</p>
+                    <p><strong>Mujeres:</strong> 159,461 (46%)</p>
+                    <p><strong>Diferencia:</strong> 27,583</p>
+                </div>
+
+                <div className="analisis-card">
+                    <h3>4️⃣ Distribución y Curtosis</h3>
+                    <p>Coeficiente de asimetría: <strong>5.29</strong> → Distribución asimétrica positiva</p>
+                    <p>Coeficiente de curtosis: <strong>41.26</strong> → Distribución leptocúrtica</p>
+                </div>
+
+                <div className="analisis-card resumen-final">
+                    <h3>5️⃣ Resumen General</h3>
+                    <p><strong>Media Global:</strong> 21,213</p>
+                    <p><strong>Mediana:</strong> 5,038</p>
+                    <p><strong>Desviación Estándar:</strong> 62,157</p>
+                </div>
+            </section>
+
         </div>
     );
 }
