@@ -5,6 +5,7 @@ import Home from './pages/Home';
 import ConsultasDashboard from './components/ConsultasDashboard';
 import CausaHospitalizacion from './components/CausaHospitalizacion';
 import PromedioDias from './components/PromedioDias';
+import AtencionMediaca from './components/AtencionMediaca';
 
 function App() {
   const [count, setCount] = useState(0)
@@ -17,6 +18,7 @@ function App() {
           <Route path="consulta/interna" element={<ConsultasDashboard />} />
           <Route path="causa/interna" element={<CausaHospitalizacion />} />
           <Route path="promedio/dias" element={<PromedioDias />} />
+          <Route path="atencion/tratamiento" element={<AtencionMediaca />} />
         </Routes>
       </Router>
     </>

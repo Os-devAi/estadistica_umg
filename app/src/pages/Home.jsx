@@ -18,6 +18,10 @@ const Home = () => {
         navigation(`promedio/dias`);
     };
 
+    const goToAtencion = () => {
+        navigation(`atencion/tratamiento`);
+    };
+
 
     return (
         <>
@@ -68,13 +72,13 @@ const Home = () => {
                         </div>
                     </div>
 
-                    <div class="card">
+                    <div class="card" onClick={goToAtencion}>
                         <div class="card-header">
-                            <h3>Tasa de Atención Médica</h3>
+                            <h3>Atención Médica</h3>
                             <div class="card-icon">👨‍⚕️</div>
                         </div>
                         <div class="card-body">
-                            <div class="indicator-description">Tasa de atención médica por cada 1,000 habitantes</div>
+                            <div class="indicator-description">Tipo de atención médica</div>
                         </div>
                     </div>
 
@@ -85,7 +89,7 @@ const Home = () => {
                             <div class="card-icon">👥</div>
                         </div>
                         <div class="card-body">
-                            <div class="indicator-value">17.2M</div>
+                            <div class="indicator-value">Alrededor de 18,687,900 habitantes. </div>
                             <div class="indicator-description">Población total por departamento</div>
                             <div class="indicator-trend trend-up">
                             </div>
