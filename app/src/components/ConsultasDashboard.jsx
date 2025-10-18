@@ -477,12 +477,12 @@ const ConsultasDashboard = () => {
         >
           🔄 Comparativa por Años
         </button>
-        <button
+        {/* <button
           className={`tab-button ${activeTab === 'lineas' ? 'active' : ''}`}
           onClick={() => setActiveTab('lineas')}
         >
           📊 Evolución Temporal
-        </button>
+        </button> */}
         <button
           className={`tab-button ${activeTab === 'tendencia' ? 'active' : ''}`}
           onClick={() => setActiveTab('tendencia')}
