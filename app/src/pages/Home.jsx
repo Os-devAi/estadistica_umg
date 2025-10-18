@@ -98,8 +98,7 @@ const Home = () => {
                             <h3>Hospitales Nacionales</h3>
                             <div class="card-icon">🏛️</div>
                         </div>
-                        <div class="card-body">
-                            <div class="indicator-value">48</div>
+                        <div class="card-body">                            
                             <div class="indicator-description">Número estimado de hospitales</div>
                         </div>
                     </div>
@@ -111,7 +110,6 @@ const Home = () => {
                             <div class="card-icon">💉</div>
                         </div>
                         <div class="card-body">
-                            <div class="indicator-value">63.7%</div>
                             <div class="indicator-description">Promedio de Cobertura</div>
                         </div>
                     </div>
@@ -129,22 +127,12 @@ const Home = () => {
                             </div>
                         </div>
                     </div>
-
-                    <div class="card">
-                        <div class="card-header">
-                            <h3>Densidad Poblacional</h3>
-                            <div class="card-icon">🗺️</div>
-                        </div>
-                        <div class="card-body">
-                            <div class="indicator-value">158</div>
-                        </div>
-                    </div>
-
+                    
                     {/* <!-- Infraestructura --> */}
 
 
                     {/* <!-- Economía --> */}
-                    <div class="card">
+                    {/* <div class="card">
                         <div class="card-header">
                             <h3>Tasa de Pobreza</h3>
                             <div class="card-icon">💰</div>
@@ -152,10 +140,10 @@ const Home = () => {
                         <div class="card-body">
                             <div class="indicator-description">Porcentaje de pobreza por departamento</div>
                         </div>
-                    </div>
+                    </div> */}
 
                     {/* <!-- Economía/Social --> */}
-                    <div class="card">
+                    {/* <div class="card">
                         <div class="card-header">
                             <h3>Acceso a Agua Potable</h3>
                             <div class="card-icon">🚰</div>
@@ -164,7 +152,7 @@ const Home = () => {
                             <div class="indicator-description">% de hogares con acceso a agua potable</div>
 
                         </div>
-                    </div>
+                    </div> */}
                 </section>
             </main>
         </>

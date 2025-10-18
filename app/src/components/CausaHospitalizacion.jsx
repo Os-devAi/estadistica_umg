@@ -145,8 +145,6 @@ function CausaHospitalizacion() {
                         <li><strong>Media:</strong> 21,213.39</li>
                         <li><strong>Desviación estándar:</strong> 62,156.71</li>
                         <li><strong>Rango:</strong> 348,291</li>
-                        <li><strong>Asimetría:</strong> 4.97</li>
-                        <li><strong>Curtosis:</strong> 26.31</li>
                     </ul>
                 </div>
 
@@ -174,16 +172,10 @@ function CausaHospitalizacion() {
                     <p><strong>Hombres:</strong> 187,044 (54%)</p>
                     <p><strong>Mujeres:</strong> 159,461 (46%)</p>
                     <p><strong>Diferencia:</strong> 27,583</p>
-                </div>
-
-                <div className="analisis-card">
-                    <h3>4️⃣ Distribución y Curtosis</h3>
-                    <p>Coeficiente de asimetría: <strong>5.29</strong> → Distribución asimétrica positiva</p>
-                    <p>Coeficiente de curtosis: <strong>41.26</strong> → Distribución leptocúrtica</p>
-                </div>
+                </div>               
 
                 <div className="analisis-card resumen-final">
-                    <h3>5️⃣ Resumen General</h3>
+                    <h3>4 Resumen General</h3>
                     <p><strong>Media Global:</strong> 21,213</p>
                     <p><strong>Mediana:</strong> 5,038</p>
                     <p><strong>Desviación Estándar:</strong> 62,157</p>
