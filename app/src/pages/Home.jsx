@@ -44,7 +44,7 @@ const Home = () => {
                         </div>
                         <div class="title-section">
                             <h1>UMG Salamá - Estadística 1</h1>
-                            <p>Salud | Ingeniería en Sistemas 2.º  B</p>
+                            <p>| Ingeniería en Sistemas 2.º  B</p>
                         </div>
                     </div>
                 </div>
